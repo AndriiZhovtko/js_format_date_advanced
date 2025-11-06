@@ -8,53 +8,44 @@
  * @returns {string}
  */
 function formatDate(date, fromFormat, toFormat) {
-  const fromSeparator = fromFormat[fromFormat.length - 1];
-  const dateParts = date.split(fromSeparator);
-  const dateValues = {};
+  const fromSep = fromFormat[3];
+  const toSep = toFormat[3];
+
+  const parts = date.split(fromSep);
+
+  const dateMap = {};
+
+  dateMap[fromFormat[0]] = parts[0];
+  dateMap[fromFormat[1]] = parts[1];
+  dateMap[fromFormat[2]] = parts[2];
+
+  const result = [];
 
   for (let i = 0; i < 3; i++) {
-    dateValues[fromFormat[i]] = dateParts[i];
-  }
+    const part = toFormat[i];
+    let value = dateMap[part];
 
-  const currentYearKey = Object.keys(dateValues).find((key) =>
-    key.includes('Y'));
-  let yearValue = dateValues[currentYearKey];
+    if (part === 'YYYY') {
+      const yy = +dateMap['YY'];
 
-  const targetYearKey = toFormat.find((key) => key.includes('Y'));
-
-  const dayValue = dateValues[fromFormat.find((key) => key.includes('D'))];
-  const monthValue = dateValues[fromFormat.find((key) => key.includes('M'))];
-
-  if (currentYearKey === 'YYYY' && targetYearKey === 'YY') {
-    yearValue = yearValue.slise(-2);
-  }
-
-  if (currentYearKey === 'YY' && targetYearKey === 'YYYY') {
-    const shortYear = parseInt(yearValue, 10);
-
-    if (shortYear <= 29) {
-      yearValue = `20${yearValue}`;
-    } else {
-      yearValue = `19${yearValue}`;
+      if (dateMap['YY']) {
+        value =
+          yy < 30
+            ? '20' + String(yy).padStart(2, '0')
+            : '19' + String(yy).padStart(2, '0');
+      }
     }
-  }
 
-  const toSeparator = toFormat[toFormat.length - 1];
-
-  const finalParts = [];
-  const toPlaceholders = toFormat.slice(0, 3);
-
-  for (const placeholder of toPlaceholders) {
-    if (placeholder.includes('Y')) {
-      finalParts.push(yearValue);
-    } else if (placeholder.includes('D')) {
-      finalParts.push(dayValue);
-    } else if (placeholder.includes('M')) {
-      finalParts.push(monthValue);
+    if (part === 'YY') {
+      if (dateMap['YYYY']) {
+        value = dateMap['YYYY'].slice(-2);
+      }
     }
+
+    result.push(value);
   }
 
-  return finalParts.join(toSeparator);
+  return result.join(toSep);
 }
 
 module.exports = formatDate;
